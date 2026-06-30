@@ -1,0 +1,8 @@
+{
+  "name": "Jasa Tukang Taman",
+  "description": "Jasa pembuatan dan perawatan taman profesional, kolam ikan, gazebo, dan hardscape.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
