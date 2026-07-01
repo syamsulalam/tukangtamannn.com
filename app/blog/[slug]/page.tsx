@@ -7,6 +7,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock, User, Tag, Calendar, CheckCircle2, MessageCircle } from "lucide-react";
 
+export const runtime = "edge";
 
 // Robust static data for blog articles
 interface ArticleData {

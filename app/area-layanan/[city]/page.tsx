@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { citiesData } from "@/data/cities";
 
+export const runtime = "edge";
+
 interface PageProps {
   params: Promise<{ city: string }>;
 }

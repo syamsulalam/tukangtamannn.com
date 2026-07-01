@@ -9,6 +9,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+export const runtime = "edge";
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
