@@ -5,7 +5,7 @@ import { MessageCircle } from "lucide-react";
 
 export default function FloatingWhatsApp() {
   return (
-    <div className="fixed bottom-8 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
+    <div className="print:hidden fixed bottom-8 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

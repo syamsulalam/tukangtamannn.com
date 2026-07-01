@@ -603,6 +603,11 @@ export default function QuotationEstimator() {
               <h1 className="text-lg font-black tracking-tight uppercase">CV. SARIJAYA MAKMUR</h1>
               <p className="text-[9px] text-gray-600 font-bold">Desain Lansekap • Pembuatan Taman Premium • Kolam Koi • Gazebo</p>
               <p className="text-[8px] text-gray-500 font-medium">Jl Green Mansion Safir blok 16, Sidoarjo, Indonesia, 61253 | Tlp/Wa: <a href="https://wa.me/6282131472864" target="_blank" rel="noreferrer" className="underline hover:text-black">082131472864</a></p>
+              <p className="text-[8px] text-gray-500 font-medium">
+                IG: <a href="https://www.instagram.com/cv_sarijaya_makmur/" target="_blank" rel="noreferrer" className="underline hover:text-black">@cv_sarijaya_makmur</a>
+                {" • "}
+                FB: <a href="https://www.facebook.com/p/CV-SariJaya-Makmur-100028578145182/" target="_blank" rel="noreferrer" className="underline hover:text-black">CV. SariJaya Makmur</a>
+              </p>
             </div>
           </div>
           <div className="text-right">

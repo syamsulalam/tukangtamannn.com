@@ -16,3 +16,16 @@
     color: var(--color-charcoal);
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  html, body {
+    background: #ffffff !important;
+  }
+  section, main {
+    background: #ffffff !important;
+  }
+}

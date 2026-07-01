@@ -3,7 +3,7 @@ import { Leaf, MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-forest border-t border-forest/10 pt-[100px] pb-6 px-6 relative overflow-hidden">
+    <footer className="print:hidden bg-white text-forest border-t border-forest/10 pt-[100px] pb-6 px-6 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
           
@@ -20,12 +20,24 @@ export default function Footer() {
               Spesialis desain dan pembuatan taman premium oleh CV. SARIJAYA MAKMUR. Kami menghadirkan mahakarya lanskap hijau yang asri dan menenangkan.
             </p>
             <div className="flex gap-4">
-              <span className="w-10 h-10 rounded-full border border-forest/10 flex items-center justify-center hover:bg-forest hover:text-white transition-colors cursor-pointer text-forest">
+              <a
+                href="https://www.instagram.com/cv_sarijaya_makmur/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram CV. SARIJAYA MAKMUR"
+                className="w-10 h-10 rounded-full border border-forest/10 flex items-center justify-center hover:bg-forest hover:text-white hover:border-forest transition-colors cursor-pointer text-forest"
+              >
                 <Instagram size={18} />
-              </span>
-              <span className="w-10 h-10 rounded-full border border-forest/10 flex items-center justify-center hover:bg-forest hover:text-white transition-colors cursor-pointer text-forest">
+              </a>
+              <a
+                href="https://www.facebook.com/p/CV-SariJaya-Makmur-100028578145182/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook CV. SARIJAYA MAKMUR"
+                className="w-10 h-10 rounded-full border border-forest/10 flex items-center justify-center hover:bg-forest hover:text-white hover:border-forest transition-colors cursor-pointer text-forest"
+              >
                 <Facebook size={18} />
-              </span>
+              </a>
             </div>
           </div>
 

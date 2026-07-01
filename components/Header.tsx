@@ -166,8 +166,8 @@ export default function Header() {
   };
 
   return (
-    <div 
-      className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl z-50"
+    <div
+      className="print:hidden fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl z-50"
       onMouseLeave={() => setActiveMenu(null)}
     >
       <header className="w-full bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl flex items-center justify-between px-6 py-4 md:px-8 shadow-md transition-all duration-300">
