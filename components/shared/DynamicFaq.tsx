@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, HelpCircle, ChevronDown, ChevronUp, CheckCircle, Tag, ShieldAlert, SlidersHorizontal } from "lucide-react";
 
@@ -10,6 +10,40 @@ interface FaqItem {
   q: string;
   a: string;
 }
+
+const renderAnswerWithPhoneLink = (text: string): ReactNode => {
+  const phoneRegex = /(08\d{8,12})/g;
+  const parts: ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = phoneRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    const phone = match[0];
+    const waDigits = phone.startsWith("62") ? phone : `62${phone.slice(1)}`;
+    parts.push(
+      <a
+        key={`wa-${key++}`}
+        href={`https://wa.me/${waDigits}?text=${encodeURIComponent("Halo Tim TukangTamannn.com, saya ingin berkonsultasi.")}`}
+        target="_blank"
+        rel="noreferrer"
+        className="text-sage font-bold underline-offset-2 hover:underline"
+      >
+        {phone}
+      </a>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+};
 
 const FAQ_LIST: FaqItem[] = [
   {
@@ -166,7 +200,7 @@ export default function DynamicFaq() {
                         transition={{ duration: 0.25, ease: "easeInOut" }}
                       >
                         <div className="px-6 pb-6 pt-1 border-t border-forest/5 text-charcoal/70 text-xs md:text-sm font-medium leading-relaxed bg-cream/20">
-                          {item.a}
+                          {renderAnswerWithPhoneLink(item.a)}
                         </div>
                       </motion.div>
                     )}

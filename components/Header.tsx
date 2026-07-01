@@ -3,29 +3,31 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
 import Link from "next/link";
-import { 
-  Menu, 
-  X, 
-  ArrowRight, 
-  ChevronDown, 
-  Sprout, 
-  Compass, 
-  BookOpen, 
-  Droplets, 
-  Hammer, 
-  Home, 
-  Layers, 
-  TreePine, 
-  Layout, 
-  Trees, 
+import {
+  Menu,
+  X,
+  ArrowRight,
+  ChevronDown,
+  Sprout,
+  Compass,
+  BookOpen,
+  Droplets,
+  Hammer,
+  Home,
+  Layers,
+  TreePine,
+  Layout,
+  Trees,
   Eye,
-  MapPin
+  MapPin,
+  ImageIcon,
+  Building2
 } from "lucide-react";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<"layanan" | "gaya" | "katalog" | "area" | null>(null);
-  const [mobileAccordion, setMobileAccordion] = useState<"layanan" | "gaya" | "katalog" | "area" | null>(null);
+  const [activeMenu, setActiveMenu] = useState<"layanan" | "gaya" | "katalog" | "area" | "perusahaan" | null>(null);
+  const [mobileAccordion, setMobileAccordion] = useState<"layanan" | "gaya" | "katalog" | "area" | "perusahaan" | null>(null);
 
   const brandName = "TukangTamannn.com";
 
@@ -130,10 +132,32 @@ export default function Header() {
           ]
         }
       ]
+    },
+    perusahaan: {
+      title: "Tentang Perusahaan Kami",
+      description: "Mengenal lebih dekat tim, portofolio, dan edukasi landscaping dari CV. SARIJAYA MAKMUR.",
+      icon: Building2,
+      categories: [
+        {
+          title: "Profil & Jejak Karya",
+          icon: ImageIcon,
+          items: [
+            { name: "Tentang Kami", href: "/tentang-kami", desc: "Cerita tim, nilai inti, & proses kerja terstruktur." },
+            { name: "Portofolio Proyek", href: "/portofolio", desc: "Galeri 150+ proyek taman premium yang telah kami selesaikan." }
+          ]
+        },
+        {
+          title: "Edukasi & Inspirasi",
+          icon: BookOpen,
+          items: [
+            { name: "Blog & Artikel", href: "/blog", desc: "Tips merawat taman, panduan biaya, & inspirasi desain terbaru." }
+          ]
+        }
+      ]
     }
   };
 
-  const toggleMobileAccordion = (menu: "layanan" | "gaya" | "katalog" | "area") => {
+  const toggleMobileAccordion = (menu: "layanan" | "gaya" | "katalog" | "area" | "perusahaan") => {
     if (mobileAccordion === menu) {
       setMobileAccordion(null);
     } else {
@@ -159,7 +183,7 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          
+
           {/* Layanan Mega Link */}
           <button
             onMouseEnter={() => setActiveMenu("layanan")}
@@ -193,10 +217,6 @@ export default function Header() {
             <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === "katalog" ? "rotate-180" : ""}`} />
           </button>
 
-          <Link href="/portofolio" className="text-xs font-bold text-forest/80 hover:text-forest transition-colors uppercase tracking-wider">
-            Portofolio
-          </Link>
-          
           {/* Area Mega Link */}
           <button
             onMouseEnter={() => setActiveMenu("area")}
@@ -208,12 +228,16 @@ export default function Header() {
             <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === "area" ? "rotate-180" : ""}`} />
           </button>
 
-          <Link href="/blog" className="text-xs font-bold text-forest/80 hover:text-forest transition-colors uppercase tracking-wider">
-            Edukasi
-          </Link>
-          <Link href="/tentang-kami" className="text-xs font-bold text-forest/80 hover:text-forest transition-colors uppercase tracking-wider">
-            Tentang
-          </Link>
+          {/* Perusahaan Mega Link (menggantikan Portofolio / Edukasi / Tentang) */}
+          <button
+            onMouseEnter={() => setActiveMenu("perusahaan")}
+            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors ${
+              activeMenu === "perusahaan" ? "text-sage" : "text-forest/80 hover:text-forest"
+            }`}
+          >
+            Perusahaan
+            <ChevronDown size={14} className={`transition-transform duration-200 ${activeMenu === "perusahaan" ? "rotate-180" : ""}`} />
+          </button>
         </nav>
 
         {/* CTA */}
@@ -466,30 +490,38 @@ export default function Header() {
               )}
             </div>
 
-            {/* Regular Links */}
-            <Link
-              href="/portofolio"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-xs font-extrabold text-forest uppercase tracking-wider py-1.5 px-2 hover:bg-forest/5 rounded-lg border-b border-forest/5 pb-2"
-            >
-              Portofolio
-            </Link>
-            
-            <Link
-              href="/blog"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-xs font-extrabold text-forest uppercase tracking-wider py-1.5 px-2 hover:bg-forest/5 rounded-lg border-b border-forest/5 pb-2"
-            >
-              Blog & Edukasi
-            </Link>
+            {/* Perusahaan Accordion (menggantikan Portofolio / Blog / Tentang) */}
+            <div className="border-b border-forest/5 pb-2">
+              <button
+                onClick={() => toggleMobileAccordion("perusahaan")}
+                className="w-full text-left text-xs font-extrabold text-forest uppercase tracking-wider py-2 px-2 flex justify-between items-center hover:bg-forest/5 rounded-lg"
+              >
+                <span>Perusahaan</span>
+                <ChevronDown size={14} className={`transition-transform duration-200 ${mobileAccordion === "perusahaan" ? "rotate-180" : ""}`} />
+              </button>
 
-            <Link
-              href="/tentang-kami"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-xs font-extrabold text-forest uppercase tracking-wider py-1.5 px-2 hover:bg-forest/5 rounded-lg pb-2"
-            >
-              Tentang Kami
-            </Link>
+              {mobileAccordion === "perusahaan" && (
+                <div className="pl-4 mt-2 space-y-3">
+                  {menuData.perusahaan.categories.map((cat, catIdx) => (
+                    <div key={catIdx} className="space-y-1">
+                      <span className="block text-[9px] font-bold uppercase tracking-widest text-forest/40 px-2 mt-2">
+                        {cat.title}
+                      </span>
+                      {cat.items.map((item, itemIdx) => (
+                        <Link
+                          key={itemIdx}
+                          href={item.href}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block text-xs font-medium text-charcoal hover:text-sage py-1.5 px-2 rounded hover:bg-forest/[0.02]"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* CTA */}
             <Link

@@ -81,7 +81,14 @@ export default function Footer() {
               </li>
               <li className="flex gap-3 text-charcoal/70 font-medium text-sm items-center">
                 <Phone size={18} className="text-sage flex-shrink-0" />
-                <span className="text-xs">082131472864</span>
+                <a
+                  href="https://wa.me/6282131472864?text=Halo%20Tim%20TukangTamannn.com%2C%20saya%20ingin%20berkonsultasi."
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-forest hover:text-sage font-bold transition-colors underline-offset-4 hover:underline"
+                >
+                  082131472864
+                </a>
               </li>
               <li className="pt-3 border-t border-forest/5">
                 <span className="block text-[10px] uppercase tracking-wider font-bold text-forest/40 mb-2">Area Layanan Terpopuler</span>
