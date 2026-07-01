@@ -18,19 +18,24 @@ const buildWhatsAppMessage = (data: { name: string; phone: string; service: stri
   const lines = [
     "Halo Tim TukangTamannn.com,",
     "",
-    "Saya ingin berkonsultasi mengenai proyek taman dan ingin mengajukan jadwal survei.",
+    "Saya ingin berkonsultasi mengenai proyek taman dan mengajukan jadwal survei.",
     "",
-    "Biodata Singkat:",
+    "*Biodata Singkat*",
     `• Nama        : ${data.name}`,
     `• WhatsApp    : ${data.phone}`,
     `• Layanan     : ${serviceName}`,
     "",
-    "Cerita Proyek:",
+    "*Cerita Proyek*",
     data.message,
     "",
     "Mohon info lebih lanjut mengenai estimasi biaya & jadwal kunjungan. Terima kasih."
   ];
   return lines.join("\n");
+};
+
+const buildWhatsAppLink = (data: { name: string; phone: string; service: string; message: string }) => {
+  const message = buildWhatsAppMessage(data);
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 };
 
 export default function ContactFormSection() {
@@ -46,7 +51,8 @@ export default function ContactFormSection() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   const formatPhoneMask = (val: string) => {
@@ -133,7 +139,7 @@ export default function ContactFormSection() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (honeypot) {
@@ -141,7 +147,6 @@ export default function ContactFormSection() {
       setIsSubmitting(true);
       setTimeout(() => {
         setIsSubmitting(false);
-        setIsSuccess(true);
         setFormState({ name: "", phone: "", service: "", message: "" });
         setTouched({});
         setErrors({});
@@ -175,34 +180,31 @@ export default function ContactFormSection() {
     }
 
     setIsSubmitting(true);
-
-    try {
+    setTimeout(() => {
+      const link = buildWhatsAppLink(formState);
       const message = buildWhatsAppMessage(formState);
-      const ownerWa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
-      const newTab = window.open(ownerWa, "_blank", "noopener,noreferrer");
-      if (!newTab) {
-        throw new Error("Popup diblokir oleh browser");
-      }
-
-      setIsSuccess(true);
+      setGeneratedLink(link);
+      setPreviewMessage(message);
+      setIsSubmitting(false);
       setToastMessage({
-        text: "Pesan Anda telah disiapkan di WhatsApp. Selesaikan pengiriman dari aplikasi WhatsApp Anda.",
+        text: "Pesan siap! Klik tombol WhatsApp di bawah untuk mengirim.",
         type: "success"
       });
-      setFormState({ name: "", phone: "", service: "", message: "" });
-      setTouched({});
-      setErrors({});
-    } catch (err) {
-      console.error("Failed to open WhatsApp:", err);
-      setToastMessage({
-        text: `Tidak dapat membuka WhatsApp secara otomatis. Silakan hubungi kami langsung via WhatsApp di 0821-3147-2864.`,
-        type: "error"
-      });
-    } finally {
-      setIsSubmitting(false);
-      setTimeout(() => setToastMessage(null), 6000);
-    }
+      setTimeout(() => setToastMessage(null), 5000);
+    }, 400);
+  };
+
+  const handleEditMessage = () => {
+    setGeneratedLink(null);
+    setPreviewMessage(null);
+  };
+
+  const handleSendAnother = () => {
+    setGeneratedLink(null);
+    setPreviewMessage(null);
+    setFormState({ name: "", phone: "", service: "", message: "" });
+    setTouched({});
+    setErrors({});
   };
 
   return (
@@ -264,7 +266,7 @@ export default function ContactFormSection() {
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Halo Tim TukangTamannn.com, saya ingin berkonsultasi.")}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="text-sage hover:text-white text-sm font-bold transition-colors underline-offset-4 hover:underline"
                 >
                   082131472864
@@ -288,234 +290,273 @@ export default function ContactFormSection() {
           initial={{ opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="bg-white rounded-[40px] p-8 md:p-10 shadow-2xl relative min-h-[500px]"
+          className="bg-white rounded-[40px] p-8 md:p-10 shadow-2xl relative"
         >
-          <AnimatePresence mode="wait">
-            {isSuccess ? (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-cream/90 backdrop-blur rounded-[40px] shadow-sm z-10"
-              >
-                <div className="w-20 h-20 bg-[#25D366]/15 rounded-full flex items-center justify-center text-[#25D366] mb-6">
-                  <MessageCircle size={40} className="text-[#25D366]" />
-                </div>
-                <h3 className="text-2xl font-extrabold text-forest mb-2 tracking-tight">Pesan WhatsApp Siap Dikirim!</h3>
-                <p className="text-charcoal/70 font-medium mb-8 max-w-sm">Browser Anda telah membuka WhatsApp dengan pesan yang sudah diformat lengkap. Cukup tekan tombol kirim di WhatsApp untuk menghubungi tim kami.</p>
+          <motion.form
+            suppressHydrationWarning
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-5"
+            onSubmit={handleSubmit}
+          >
+            {/* Honeypot Spam Prevention field - hidden from human users */}
+            <div className="absolute overflow-hidden opacity-0 w-0 h-0 -z-10 pointer-events-none">
+              <label htmlFor="address_verification">Address Verification</label>
+              <input
+                type="text"
+                id="address_verification"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
 
-                <button
-                  onClick={() => setIsSuccess(false)}
-                  className="px-6 py-3 bg-forest text-white font-bold rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-forest/20 hover:bg-forest/90 transition-all group"
-                >
-                  <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
-                  Kirim Pesan Lain
-                </button>
-              </motion.div>
-            ) : (
-              <motion.form
+            {/* Name Input */}
+            <div className="relative group" suppressHydrationWarning>
+              <input
                 suppressHydrationWarning
-                key="form"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-5"
-                onSubmit={handleSubmit}
-              >
-                <div className="absolute overflow-hidden opacity-0 w-0 h-0 -z-10 pointer-events-none">
-                  <label htmlFor="address_verification">Address Verification</label>
-                  <input
-                    type="text"
-                    id="address_verification"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
-                    tabIndex={-1}
-                    autoComplete="off"
-                  />
+                type="text"
+                id="name"
+                value={formState.name}
+                onChange={handleChange}
+                onBlur={() => handleBlur("name")}
+                disabled={isSubmitting}
+                className={`peer w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-all placeholder-transparent ${
+                  touched.name && errors.name
+                    ? "border-red-400 focus:border-red-500"
+                    : touched.name && !errors.name
+                    ? "border-emerald-400 focus:border-emerald-500"
+                    : "border-forest/10 focus:border-sage"
+                }`}
+                placeholder="Nama Lengkap"
+                required
+              />
+              <label htmlFor="name" className="absolute left-4 top-1 text-[10px] uppercase tracking-widest font-bold text-forest/50 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-forest/40 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-sage">Nama Lengkap</label>
+
+              <AnimatePresence>
+                {touched.name && errors.name && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
+                  >
+                    <AlertCircle size={13} className="flex-shrink-0" /> {errors.name}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Phone Input */}
+            <div className="relative group" suppressHydrationWarning>
+              <input
+                suppressHydrationWarning
+                type="tel"
+                id="phone"
+                value={formState.phone}
+                onChange={handleChange}
+                onBlur={() => handleBlur("phone")}
+                disabled={isSubmitting}
+                className={`peer w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-all placeholder-transparent pt-6 pb-2 ${
+                  touched.phone && errors.phone
+                    ? "border-red-400 focus:border-red-500"
+                    : touched.phone && !errors.phone
+                    ? "border-emerald-400 focus:border-emerald-500"
+                    : "border-forest/10 focus:border-sage"
+                }`}
+                placeholder="Nomor WhatsApp"
+                required
+              />
+              <label htmlFor="phone" className="absolute left-4 top-1 text-[10px] uppercase tracking-widest font-bold text-forest/50 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-forest/40 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-sage">Nomor WhatsApp</label>
+
+              <AnimatePresence>
+                {touched.phone && errors.phone && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
+                  >
+                    <AlertCircle size={13} className="flex-shrink-0" /> {errors.phone}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Service Select */}
+            <div suppressHydrationWarning>
+              <div className="relative">
+                <select
+                  suppressHydrationWarning
+                  id="service"
+                  value={formState.service}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur("service")}
+                  disabled={isSubmitting}
+                  className={`w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-colors appearance-none font-medium pr-10 ${
+                    touched.service && errors.service
+                      ? "border-red-400 focus:border-red-500"
+                      : touched.service && !errors.service
+                      ? "border-emerald-400 focus:border-emerald-500"
+                      : "border-forest/10 focus:border-sage"
+                  }`}
+                  required
+                >
+                  <option value="" disabled className="text-forest/40">Pilih Layanan...</option>
+                  <option value="pembuatan">Pembuatan Taman Baru</option>
+                  <option value="kolam">Pembuatan Kolam / Gazebo</option>
+                  <option value="perawatan">Perawatan / Renovasi</option>
+                  <option value="konsultasi">Konsultasi Desain</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-forest/60">
+                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
+              </div>
 
-                {/* Name Input */}
-                <div className="relative group" suppressHydrationWarning>
-                  <input
-                    suppressHydrationWarning
-                    type="text"
-                    id="name"
-                    value={formState.name}
-                    onChange={handleChange}
-                    onBlur={() => handleBlur("name")}
-                    disabled={isSubmitting}
-                    className={`peer w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-all placeholder-transparent ${
-                      touched.name && errors.name
-                        ? "border-red-400 focus:border-red-500"
-                        : touched.name && !errors.name
-                        ? "border-emerald-400 focus:border-emerald-500"
-                        : "border-forest/10 focus:border-sage"
-                    }`}
-                    placeholder="Nama Lengkap"
-                    required
-                  />
-                  <label htmlFor="name" className="absolute left-4 top-1 text-[10px] uppercase tracking-widest font-bold text-forest/50 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-forest/40 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-sage">Nama Lengkap</label>
+              <AnimatePresence>
+                {touched.service && errors.service && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
+                  >
+                    <AlertCircle size={13} className="flex-shrink-0" /> {errors.service}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  <AnimatePresence>
-                    {touched.name && errors.name && (
-                      <motion.p
-                        initial={{ opacity: 0, height: 0, y: -4 }}
-                        animate={{ opacity: 1, height: "auto", y: 0 }}
-                        exit={{ opacity: 0, height: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
-                      >
-                        <AlertCircle size={13} className="flex-shrink-0" /> {errors.name}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
+            {/* Message Textarea */}
+            <div className="relative group" suppressHydrationWarning>
+              <textarea
+                suppressHydrationWarning
+                id="message"
+                value={formState.message}
+                onChange={handleChange}
+                onBlur={() => handleBlur("message")}
+                disabled={isSubmitting}
+                rows={4}
+                className={`peer w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-all resize-none placeholder-transparent pt-6 ${
+                  touched.message && errors.message
+                    ? "border-red-400 focus:border-red-500"
+                    : touched.message && !errors.message
+                    ? "border-emerald-400 focus:border-emerald-500"
+                    : "border-forest/10 focus:border-sage"
+                }`}
+                placeholder="Pesan Tambahan"
+                required
+              ></textarea>
+              <label htmlFor="message" className="absolute left-4 top-2 text-[10px] uppercase tracking-widest font-bold text-forest/50 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-forest/40 peer-focus:top-2 peer-focus:text-[10px] peer-focus:text-sage">Ceritakan Proyek Anda</label>
 
-                {/* Phone Input */}
-                <div className="relative group" suppressHydrationWarning>
-                  <input
-                    suppressHydrationWarning
-                    type="tel"
-                    id="phone"
-                    value={formState.phone}
-                    onChange={handleChange}
-                    onBlur={() => handleBlur("phone")}
-                    disabled={isSubmitting}
-                    className={`peer w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-all placeholder-transparent pt-6 pb-2 ${
-                      touched.phone && errors.phone
-                        ? "border-red-400 focus:border-red-500"
-                        : touched.phone && !errors.phone
-                        ? "border-emerald-400 focus:border-emerald-500"
-                        : "border-forest/10 focus:border-sage"
-                    }`}
-                    placeholder="Nomor WhatsApp"
-                    required
-                  />
-                  <label htmlFor="phone" className="absolute left-4 top-1 text-[10px] uppercase tracking-widest font-bold text-forest/50 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-forest/40 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-sage">Nomor WhatsApp</label>
+              <AnimatePresence>
+                {touched.message && errors.message && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0, y: -4 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
+                  >
+                    <AlertCircle size={13} className="flex-shrink-0" /> {errors.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  <AnimatePresence>
-                    {touched.phone && errors.phone && (
-                      <motion.p
-                        initial={{ opacity: 0, height: 0, y: -4 }}
-                        animate={{ opacity: 1, height: "auto", y: 0 }}
-                        exit={{ opacity: 0, height: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
-                      >
-                        <AlertCircle size={13} className="flex-shrink-0" /> {errors.phone}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Service Select */}
-                <div suppressHydrationWarning>
-                  <div className="relative">
-                    <select
-                      suppressHydrationWarning
-                      id="service"
-                      value={formState.service}
-                      onChange={handleChange}
-                      onBlur={() => handleBlur("service")}
-                      disabled={isSubmitting}
-                      className={`w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-colors appearance-none font-medium pr-10 ${
-                        touched.service && errors.service
-                          ? "border-red-400 focus:border-red-500"
-                          : touched.service && !errors.service
-                          ? "border-emerald-400 focus:border-emerald-500"
-                          : "border-forest/10 focus:border-sage"
-                      }`}
-                      required
-                    >
-                      <option value="" disabled className="text-forest/40">Pilih Layanan...</option>
-                      <option value="pembuatan">Pembuatan Taman Baru</option>
-                      <option value="kolam">Pembuatan Kolam / Gazebo</option>
-                      <option value="perawatan">Perawatan / Renovasi</option>
-                      <option value="konsultasi">Konsultasi Desain</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-forest/60">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            {/* Submit Area: Button → Embedded WhatsApp Link Preview */}
+            <AnimatePresence mode="wait">
+              {generatedLink && previewMessage ? (
+                <motion.div
+                  key="wa-link"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className="space-y-3 pt-2"
+                >
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 size={16} className="text-emerald-600" />
+                      <p className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
+                        Pesan WhatsApp Siap Dikirim
+                      </p>
                     </div>
+                    <pre className="text-[11px] text-charcoal/80 font-mono whitespace-pre-wrap break-words leading-relaxed max-h-40 overflow-y-auto bg-white/60 rounded-lg p-3 border border-emerald-100">
+                      {previewMessage}
+                    </pre>
                   </div>
 
-                  <AnimatePresence>
-                    {touched.service && errors.service && (
-                      <motion.p
-                        initial={{ opacity: 0, height: 0, y: -4 }}
-                        animate={{ opacity: 1, height: "auto", y: 0 }}
-                        exit={{ opacity: 0, height: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
-                      >
-                        <AlertCircle size={13} className="flex-shrink-0" /> {errors.service}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
+                  <a
+                    href={generatedLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#25D366]/20 hover:bg-[#1ebe5d] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <MessageCircle size={18} />
+                    Buka WhatsApp & Kirim
+                    <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </a>
 
-                {/* Message Textarea */}
-                <div className="relative group" suppressHydrationWarning>
-                  <textarea
-                    suppressHydrationWarning
-                    id="message"
-                    value={formState.message}
-                    onChange={handleChange}
-                    onBlur={() => handleBlur("message")}
-                    disabled={isSubmitting}
-                    rows={4}
-                    className={`peer w-full bg-cream/50 border rounded-xl px-4 py-4 text-charcoal outline-none transition-all resize-none placeholder-transparent pt-6 ${
-                      touched.message && errors.message
-                        ? "border-red-400 focus:border-red-500"
-                        : touched.message && !errors.message
-                        ? "border-emerald-400 focus:border-emerald-500"
-                        : "border-forest/10 focus:border-sage"
-                    }`}
-                    placeholder="Pesan Tambahan"
-                    required
-                  ></textarea>
-                  <label htmlFor="message" className="absolute left-4 top-2 text-[10px] uppercase tracking-widest font-bold text-forest/50 transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-forest/40 peer-focus:top-2 peer-focus:text-[10px] peer-focus:text-sage">Ceritakan Proyek Anda</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleEditMessage}
+                      className="flex-1 bg-forest/5 text-forest font-bold py-3 rounded-xl text-xs hover:bg-forest/10 transition-all flex items-center justify-center gap-1.5"
+                    >
+                      Edit Pesan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendAnother}
+                      className="flex-1 bg-forest/5 text-forest font-bold py-3 rounded-xl text-xs hover:bg-forest/10 transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <RefreshCw size={13} />
+                      Kirim Ulang
+                    </button>
+                  </div>
 
-                  <AnimatePresence>
-                    {touched.message && errors.message && (
-                      <motion.p
-                        initial={{ opacity: 0, height: 0, y: -4 }}
-                        animate={{ opacity: 1, height: "auto", y: 0 }}
-                        exit={{ opacity: 0, height: 0, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1.5 overflow-hidden"
-                      >
-                        <AlertCircle size={13} className="flex-shrink-0" /> {errors.message}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#25D366]/20 hover:bg-[#1ebe5d] transition-all flex items-center justify-center gap-2 group disabled:opacity-75 disabled:cursor-not-allowed"
+                  <p className="text-[9px] text-charcoal/40 text-center font-mono leading-relaxed break-all">
+                    {generatedLink}
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="submit"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-2"
                 >
-                  {isSubmitting ? (
-                    <span className="flex items-center gap-2">
-                      Menyiapkan Pesan WhatsApp...
-                      <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
-                    </span>
-                  ) : (
-                    <>
-                      Kirim via WhatsApp
-                      <Send size={18} className="group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-[#25D366] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#25D366]/20 hover:bg-[#1ebe5d] transition-all flex items-center justify-center gap-2 group disabled:opacity-75 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        Menyiapkan Pesan WhatsApp...
+                        <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                      </span>
+                    ) : (
+                      <>
+                        Siapkan Pesan WhatsApp
+                        <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
 
-                <p className="text-[10px] text-charcoal/50 text-center font-medium leading-relaxed">
-                  Dengan mengirim, Anda akan diarahkan ke WhatsApp untuk menyelesaikan konsultasi dengan Tim TukangTamannn.com.
-                </p>
-              </motion.form>
-            )}
-          </AnimatePresence>
+                  <p className="text-[10px] text-charcoal/50 text-center font-medium leading-relaxed">
+                    Setelah klik, tombol WhatsApp akan muncul di formulir ini. Klik tombol tersebut untuk membuka chat dengan Tim TukangTamannn.com.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.form>
         </motion.div>
       </div>
     </section>
